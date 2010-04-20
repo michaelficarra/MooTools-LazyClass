@@ -10,7 +10,7 @@ provides: [LazyClass]
 var LazyClass = new Class({
 	Implements: [Options,Events],
 	options: {
-		path: '{class}.js'
+		path: './{class}.js'
 	},
 
 	initialize: function(klass,options){
@@ -18,20 +18,30 @@ var LazyClass = new Class({
 		this.setOptions(options||{});
 		var that = this;
 		return new Class(function(){
-			var klass = that.load();
-			return new klass(arguments);
+			that.load();
+			var constructor = 'new '+that.klass+'(';
+			for(var i=0; i<arguments.length; i++) {
+				if(i>0) constructor += ',';
+				constructor += 'arguments['+i+']';
+			}
+			constructor += ')';
+			return eval(constructor);
 		});
 	},
 
 	load: function(){
-		new Asset.javascript(
-			this.options.path.substitute({'class':this.klass}),
-			{
-				onload: function(){
-					this.fireEvent('load',window[this.klass])
-				}
-			}
-		);
+		new Request({
+			method: 'get',
+			url: this.options.path.substitute({'class':this.klass}),
+			async: false,
+			onFailure: function(xhr){
+				this.fireEvent('failure');
+			}.bind(this),
+			onSuccess: function(js){
+				eval(js);
+				this.fireEvent('load',window[this.klass]);
+			}.bind(this)
+		}).send();
 		return window[this.klass];
 	}
 });
