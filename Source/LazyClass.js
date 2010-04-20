@@ -3,9 +3,11 @@
 description: Generates a class that lazily loads the real class on first instantiation
 license: LGPL
 authors: ['Michael Ficarra']
-requires: [Core,Array,Class,Options,Events,Utilities.Assets]
+requires: [Core,Array,Class,Options,Events]
 provides: [LazyClass]
 ... */
+
+
 
 var LazyClass = new Class({
 	Implements: [Options,Events],
@@ -19,7 +21,7 @@ var LazyClass = new Class({
 		var that = this;
 		return new Class(function(){
 			that.load();
-			var constructor = 'new '+that.klass+'(';
+			var constructor = 'new '+klass+'(';
 			for(var i=0; i<arguments.length; i++) {
 				if(i>0) constructor += ',';
 				constructor += 'arguments['+i+']';
@@ -45,6 +47,19 @@ var LazyClass = new Class({
 		return window[this.klass];
 	}
 });
+
+LazyClass.prepare = function(){
+	var args = $A(arguments),
+		options = {};
+	if(['object','hash'].contains($type(args.getLast()))) {
+		options = args.getLast();
+		args = args.slice(0,-1);
+	}
+	if($type(arguments[0])=='array') args = arguments[0];
+	args.each(function(klass){
+		window[klass] = new this(klass,options);
+	},this);
+};
 
 /* Copyright 2010 Michael Ficarra
 This program is distributed under the (very open)
