@@ -12,7 +12,8 @@ provides: [LazyClass]
 var LazyClass = new Class({
 	Implements: [Options,Events],
 	options: {
-		path: './{class}.js'
+		path: './{class}.js',
+		scope: window
 	},
 
 	initialize: function(klass,options){
@@ -20,14 +21,12 @@ var LazyClass = new Class({
 		this.setOptions(options||{});
 		var that = this;
 		return new Class(function(){
-			that.load();
-			var constructor = 'new '+klass+'(';
-			for(var i=0; i<arguments.length; i++) {
-				if(i>0) constructor += ',';
-				constructor += 'arguments['+i+']';
-			}
-			constructor += ')';
-			return eval(constructor);
+			var klass = that.load();
+			var F = function(){};
+			F.prototype = klass.prototype;
+			var o = new F();
+			klass.apply(o,$A(arguments));
+			return o;
 		});
 	},
 
@@ -40,11 +39,11 @@ var LazyClass = new Class({
 				this.fireEvent('failure');
 			}.bind(this),
 			onSuccess: function(js){
-				eval(js);
-				this.fireEvent('load',window[this.klass]);
+				with(this.options.scope){ eval(js); }
+				this.fireEvent('load',this.options.scope[this.klass]);
 			}.bind(this)
 		}).send();
-		return window[this.klass];
+		return this.options.scope[this.klass];
 	}
 });
 
