@@ -12,17 +12,17 @@ How To Use
 Instantiate a new `LazyClass` by passing its constructor the name of
 the class to generate.
 
-	var TestClass = new LazyClass('TestClass');
+	var ClassName = new LazyClass('ClassName');
 
-A nearly empty class will be generated and assigned to TestClass.
+A nearly empty class will be generated and assigned to ClassName.
 This is called the "prepared" state. The real class has not been
-loaded yet, but TestClass may be used just as if it has. On the first
-attempt to instantiate a TestClass instance, the class will be
-fetched with an XmlHttpRequest. TestClass will be redifined and
-replaced with the real TestClass, and the initial request for an
-instance of TestClass will return an instance of the real TestClass.
+loaded yet, but ClassName may be used just as if it has. On the first
+attempt to instantiate a ClassName instance, the class will be
+fetched with an XmlHttpRequest. ClassName will be redifined and
+replaced with the real ClassName, and the initial request for an
+instance of ClassName will return an instance of the real ClassName.
 
-	new TestClass('abc',123);
+	new ClassName('abc',123);
 
 ### load
 On-demand load. If the class has been prepared already but not
@@ -33,9 +33,9 @@ accessing class methods, which will not exist in the prepared class,
 nor load the class when an attempt is made to call them (unless
 explicitly defined in the options).
 
-	TestClass = TestClass.load();
+	ClassName = ClassName.load();
 	// or just
-	TestClass.load();
+	ClassName.load();
 
 ### LazyClass.prepare
 A utility class method that creates prepared classes for each of the
@@ -60,7 +60,7 @@ Options
 -------
 
 All options passed to LazyClass.prepare are passed straight through
-to the LazyClass constructor for each String given to it. This is
+to the LazyClass constructor for each class given to it. This is
 useful for using the same options to prepare many classes.
 
 ### path *(default: "./{class}.js")*
@@ -79,7 +79,7 @@ will be accessed.
 	window.personalScope = {}
 	var classes = ['ClassName0','ClassName1','ClassName2'];
 	LazyClass.prepare(classes,{scope:window.personalScope});
-	new personalScope.className2(0,1,2,3,4,5,6,7,8,9);
+	new personalScope.className2(0,1,2,3,4,5,6,7,8,9,'abc','def');
 
 ### classMethods *(default: [])*
 Allows the class to be lazily loaded on a call of any of the given
@@ -87,8 +87,8 @@ class methods. In the following example, `classMethod` will invoke
 the loading process and then return the return value of the real
 class method.
 
-	new LazyClass('Dummy');
-	Dummy.classMethod(7,8,9);
+	new LazyClass('ClassName',{classMethods:'classMethod'});
+	ClassName.classMethod(7,8,9);
 
 
 Known Issues
