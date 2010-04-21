@@ -17,9 +17,11 @@ var LazyClass = new Class({
 
 	initialize: function(klass,options){
 		this.klass = klass;
-		this.setOptions(options||{});
-		var that = this,
-			classMethods = $splat(this.options.classMethods);
+		this.setOptions(options);
+		this.options.scope = (options||{}).scope || this.constructor.prototype.options.scope;
+		this.options.classMethods = $splat(this.options.classMethods);
+
+		var that = this;
 		var preparedClass = new Class(function(){
 			var klass = that.options.scope[that.klass];
 			if(klass===undefined || klass===this.constructor) klass = that.load();
@@ -29,13 +31,14 @@ var LazyClass = new Class({
 			klass.apply(o,$A(arguments));
 			return o;
 		});
-		classMethods.each(function(method){
+		this.options.classMethods.each(function(method){
 			preparedClass[method] = function(){
 				var klass = that.options.scope[that.klass];
 				if(klass===undefined || klass===this) klass = that.load();
 				klass[method].call(klass,$A(arguments));
 			};
 		});
+		this.options.scope[this.klass] = this.preparedClass = preparedClass;
 		return preparedClass;
 	},
 
@@ -55,7 +58,8 @@ var LazyClass = new Class({
 			}.bind(this),
 			onSuccess: function(js){
 				(new Function(js)).call(this.options.scope);
-				klass = this.options.scope[this.klass] || window[this.klass]
+				klass = this.options.scope[this.klass];
+				if(klass===undefined || klass===this.preparedClass) klass = window[this.klass];
 				this.options.scope[this.klass] = klass;
 				this.fireEvent('load',klass);
 			}.bind(this)
@@ -72,9 +76,12 @@ LazyClass.prepare = function(){
 		args = args.slice(0,-1);
 	}
 	if($type(arguments[0])=='array') args = arguments[0];
+
+	var preparedClasses = [];
 	args.each(function(klass){
-		(options.scope || this.prototype.options.scope)[klass] = new this(klass,options);
+		preparedClasses.push(new this(klass,options));
 	},this);
+	return preparedClasses;
 };
 
 /* Copyright 2010 Michael Ficarra
