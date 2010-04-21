@@ -35,7 +35,7 @@ var LazyClass = new Class({
 			preparedClass[method] = function(){
 				var klass = that.options.scope[that.klass];
 				if(klass===undefined || klass===this) klass = that.load();
-				klass[method].call(klass,$A(arguments));
+				return klass[method].apply(klass,$A(arguments));
 			};
 		});
 		this.options.scope[this.klass] = this.preparedClass = preparedClass;
