@@ -59,12 +59,36 @@ provided as the final parameter regardless.
 Options
 -------
 
+All options passed to LazyClass.prepare are passed straight through
+to the LazyClass constructor for each String given to it. This is
+useful for using the same options to prepare many classes.
+
 ### path *(default: "./{class}.js")*
+A relative or absolute path to the source of the class to prepare.
+`{class}` will be replaced with the String that was provided as the
+class name. If the class was stored in the "js" folder in the root
+directory of the web server and was of the extension ".class.js", use
+the path option as show below.
+
+	var ClassName = LazyClass('ClassName',{path:'/js/{class}.class.js'});
 
 ### scope *(default: window)*
+The scope into which the class will be assigned and from which it
+will be accessed.
+
+	window.personalScope = {}
+	var classes = ['ClassName0','ClassName1','ClassName2'];
+	LazyClass.prepare(classes,{scope:window.personalScope});
+	new personalScope.className2(0,1,2,3,4,5,6,7,8,9);
 
 ### classMethods *(default: [])*
+Allows the class to be lazily loaded on a call of any of the given
+class methods. In the following example, `classMethod` will invoke
+the loading process and then return the return value of the real
+class method.
 
+	new LazyClass('Dummy');
+	Dummy.classMethod(7,8,9);
 
 
 Known Issues
@@ -76,11 +100,12 @@ javascript. Manipulation of `document.domain` can allow classes to be
 loaded from different domains that share a [second-level domain](http://en.wikipedia.org/wiki/Second-level_domain)
 for now. This should be good enough for most problems.
 
-There are some hack workarounds for this, and a solution is planned.
-Suggestions or contributions are welcome. Note that the method used
-must synchronously request, download, and execute javascript from a
-remote host (preferably without same-origin restrictions), so a
-simple solution like [Utilities.Assets.javascript](http://mootools.net/docs/more/Utilities/Assets#Asset:javascript)
+There are some workarounds for this (most of which are gigantic
+hacks), and a proper solution is planned. Suggestions or
+contributions are welcome. Note that the method used must
+synchronously request, download, and execute javascript from a remote
+host (preferably without same-origin restrictions), so a simple
+solution like [Utilities.Assets.javascript](http://mootools.net/docs/more/Utilities/Assets#Asset:javascript)
 will not work.
 
 
