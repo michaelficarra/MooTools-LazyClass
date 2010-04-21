@@ -3,11 +3,9 @@
 description: Generates a class that lazily loads the real class on first instantiation
 license: LGPL
 authors: ['Michael Ficarra']
-requires: [Core,Array,Class,Options,Events]
+requires: [Core,Array,Class,Options,Events,Request]
 provides: [LazyClass]
 ... */
-
-
 
 var LazyClass = new Class({
 	Implements: [Options,Events],
@@ -21,7 +19,8 @@ var LazyClass = new Class({
 		this.setOptions(options||{});
 		var that = this;
 		return new Class(function(){
-			var klass = that.load();
+			var klass = that.options.scope[that.klass];
+			if(klass===undefined || klass===this.constructor) klass = that.load();
 			var F = function(){};
 			F.prototype = klass.prototype;
 			var o = new F();
@@ -31,19 +30,27 @@ var LazyClass = new Class({
 	},
 
 	load: function(){
+		var klass,
+			path = this.options.path.substitute({'class':this.klass});
 		new Request({
 			method: 'get',
-			url: this.options.path.substitute({'class':this.klass}),
+			url: path,
 			async: false,
 			onFailure: function(xhr){
-				this.fireEvent('failure');
+				/*var script = Asset.javascript(path,{
+					onload: function(){
+						
+					}
+				});*/
 			}.bind(this),
 			onSuccess: function(js){
-				with(this.options.scope){ eval(js); }
-				this.fireEvent('load',this.options.scope[this.klass]);
+				(new Function(js)).call(this.options.scope);
+				klass = this.options.scope[this.klass] || window[this.klass]
+				this.options.scope[this.klass] = klass;
+				this.fireEvent('load',klass);
 			}.bind(this)
 		}).send();
-		return this.options.scope[this.klass];
+		return klass;
 	}
 });
 
@@ -56,7 +63,7 @@ LazyClass.prepare = function(){
 	}
 	if($type(arguments[0])=='array') args = arguments[0];
 	args.each(function(klass){
-		window[klass] = new this(klass,options);
+		(options.scope || this.prototype.options.scope)[klass] = new this(klass,options);
 	},this);
 };
 
