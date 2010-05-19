@@ -28,40 +28,49 @@ var LazyClass = new Class({
 			var F = function(){};
 			F.prototype = klass.prototype;
 			var o = new F();
-			klass.apply(o,$A(arguments));
+			klass.apply(o,arguments);
 			return o;
 		});
 		this.options.classMethods.each(function(method){
 			preparedClass[method] = function(){
 				var klass = that.options.scope[that.klass];
 				if(klass===undefined || klass===this) klass = that.load();
-				return klass[method].apply(klass,$A(arguments));
+				return klass[method].apply(klass,arguments);
 			};
 		});
-		this.options.scope[this.klass] = this.preparedClass = preparedClass;
-		return preparedClass;
+		return this.options.scope[this.klass] = this.preparedClass = preparedClass;
 	},
 
 	load: function(){
 		var klass,
-			path = this.options.path.substitute({'class':this.klass});
+			path = this.options.path.substitute({'class':this.klass}),
+			addToScope = function(){
+				klass = this.options.scope[this.klass];
+				if(klass===undefined || klass===this.preparedClass) klass = window[this.klass];
+				this.options.scope[this.klass] = klass;
+				this.fireEvent('load',klass);
+			}.bind(this);
 		new Request({
 			method: 'get',
 			url: path,
 			async: false,
 			onFailure: function(xhr){
-				/*var script = Asset.javascript(path,{
-					onload: function(){
-						
-					}
-				});*/
+				if(Asset && Asset.javascript) Asset.javascript(path);
+				else {
+					var o, parent = document.head || ((o=document.getElement('head')) ? o : document.body);
+					parent.adopt(new Element('script',{
+						type: 'text/javascript',
+						src: path
+					}));
+				}
+				var now, start=Date.now(), timeout=5000;
+				// UGLY!
+				while(!window[this.klass] && (now=Date.now())-start<timeout);
+				addToScope();
 			}.bind(this),
 			onSuccess: function(js){
 				(new Function(js)).call(this.options.scope);
-				klass = this.options.scope[this.klass];
-				if(klass===undefined || klass===this.preparedClass) klass = window[this.klass];
-				this.options.scope[this.klass] = klass;
-				this.fireEvent('load',klass);
+				addToScope();
 			}.bind(this)
 		}).send();
 		return klass;
