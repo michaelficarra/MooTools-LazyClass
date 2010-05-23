@@ -7,7 +7,7 @@ requires: [Core,Array,Class,Options,Events,Request]
 provides: [LazyClass]
 ... */
 
-var LazyClass = new Class({
+this.LazyClass = new Class({
 	Implements: [Options,Events],
 	options: {
 		path: './{class}.js',

@@ -1,0 +1,7 @@
+describe('',{
+	before: function(){
+		
+	},
+	'': function() {
+	}
+});
