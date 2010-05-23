@@ -1,4 +1,4 @@
-this.Dummy = new Class(
+Dummy = new Class(
 {
   initialize: function(a, b)
   {
