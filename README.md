@@ -91,6 +91,15 @@ class method.
 	ClassName.classMethod(7,8,9);
 
 
+TODO
+----
+
+* Research better blocking solutions like [getify's LABjs](http://github.com/getify/LABjs/)
+* Research [promises](http://github.com/ShiftSpace/promises) and
+possibly perform a complete rewrite, promising that classes will
+exist by the time they are used
+
+
 Known Issues
 ------------
 
@@ -98,15 +107,16 @@ Due to the same-origin policy on the XmlHttpRequest object, classes
 need to be served from the same domain as the page running the
 javascript. Manipulation of `document.domain` can allow classes to be
 loaded from different domains that share a [second-level domain](http://en.wikipedia.org/wiki/Second-level_domain)
-for now. This should be good enough for most problems.
+for now. This should be good enough for most problems. There are some
+workarounds for this (most of which are gigantic hacks), and a proper
+solution is planned. Suggestions or contributions are welcome.
 
-There are some workarounds for this (most of which are gigantic
-hacks), and a proper solution is planned. Suggestions or
-contributions are welcome. Note that the method used must
-synchronously request, download, and execute javascript from a remote
-host (preferably without same-origin restrictions), so a simple
-solution like [Utilities.Assets.javascript](http://mootools.net/docs/more/Utilities/Assets#Asset:javascript)
-will not work.
+A method to synchronously request, download, and execute javascript
+from a remote host (preferably without same-origin restrictions) is
+being researched. Unfortunately, a simple solution like
+[Utilities.Assets.javascript](http://mootools.net/docs/more/Utilities/Assets#Asset:javascript)
+or [Request.JSONP](http://mootools.net/docs/more/Request/Request.JSONP)
+will not work, as they do not block. See links in the TODO section.
 
 
 Additional Info
